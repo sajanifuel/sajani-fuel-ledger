@@ -197,11 +197,54 @@ tr:hover{background:#f7f9fc;}
 .modal-field input:focus{border-color:var(--blue);}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
 
+/* ── MOBILE RESPONSIVE ────────────────────────────────────────── */
 @media(max-width:600px){
+  body{overflow-x:hidden;width:100vw;}
+  .portal-nav{flex-wrap:wrap;padding:0 10px;}
   .portal-brand{display:none;}
-  .ledger-tab{font-size:11px;padding:8px 12px;}
-  td,th{padding:6px 7px;font-size:11px;}
+  #userBadge{font-size:10px;padding:3px 8px;margin-left:4px;}
+  .ledger-tabs{order:2;width:100%;overflow-x:auto;flex-wrap:nowrap;padding:4px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .ledger-tabs::-webkit-scrollbar{display:none;}
+  .ledger-tab{font-size:11px;padding:6px 10px;white-space:nowrap;}
+  .portal-nav>div:last-child{order:1;margin-left:auto;gap:4px;padding:6px 0;}
+  .btn-new-ledger{font-size:10px;padding:4px 8px;margin-left:0;}
+  .sync-badge{font-size:9px;padding:3px 7px;}
+  .ledger-panel,.sec-panel{padding:12px 10px!important;width:100%;max-width:100%;}
+  .top-bar{flex-direction:column;align-items:flex-start;gap:8px;}
+  .top-bar h1{font-size:12px;}
+  .btn-group{flex-wrap:wrap;gap:5px;}
+  .btn{font-size:11px;padding:6px 10px;}
   .btn-sm{font-size:10px;padding:3px 7px;}
+  .grand-wrap{grid-template-columns:1fr 1fr;gap:8px;}
+  .grand-card{padding:10px 12px;}
+  .grand-card .val{font-size:12px;}
+  .grand-card .lbl{font-size:9px;}
+  .page-bar{padding:8px 10px;gap:6px;}
+  .page-tab{font-size:10px;padding:4px 10px;}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{font-size:11px;min-width:480px;}
+  td,th{padding:6px 7px;font-size:10px;}
+  .home-hero{padding:20px 16px 16px;border-radius:12px;}
+  .home-hero h1{font-size:16px;}
+  .home-hero-stats{gap:10px;}
+  .home-hero-stat{padding:8px 12px;min-width:80px;}
+  .home-hero-stat .val{font-size:12px;}
+  .home-grid{grid-template-columns:1fr 1fr!important;gap:10px;}
+  .home-card{padding:14px 12px;min-height:100px;}
+  .home-card-icon{font-size:22px;margin-bottom:6px;}
+  .home-card-title{font-size:11px;}
+  .home-card-sub{font-size:9px;}
+  .home-card-badge{font-size:9px;padding:2px 8px;margin-top:6px;}
+  .install-banner{padding:10px 14px;}
+  .add-panel{padding:12px 14px;}
+  .form-row{flex-direction:column;gap:8px;}
+  .form-group{min-width:100%;}
+  .modal{padding:20px 16px;max-width:96vw;}
+  .co-header{padding:10px 14px 8px;}
+  .co-name{font-size:12px;}
+  .co-stats{padding:8px 14px;gap:10px;}
+  .co-stat{font-size:10px;}
+  #sec-home{padding:14px 10px!important;}
 }
 @media print{
   .portal-nav,.top-bar,.page-bar,.add-panel,.act,.btn-group,.sync-panel{display:none!important;}
