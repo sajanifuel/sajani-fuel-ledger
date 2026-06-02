@@ -2116,16 +2116,22 @@ setInterval(updateHero,30000);
 // ══════════════════════════════════════════════════════════════════
 // PWA — PROGRESSIVE WEB APP (Install as App)
 // ══════════════════════════════════════════════════════════════════
-// Inject manifest dynamically
 (function(){
+  // Build icon as data URI SVG
+  var iconSvg='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#1F4E79"/><text y="0.9em" font-size="72" x="10">⛽</text></svg>');
   var manifest={
-    name:'Sajani Fuel Portal',short_name:'Sajani Fuel',
+    name:'Sajani Fuel Portal',
+    short_name:'Sajani Fuel',
     description:'M/S Sajani Fuel Service — Business Management Portal',
-    start_url:'.',display:'standalone',
-    background_color:'#1F4E79',theme_color:'#1F4E79',
+    start_url:location.pathname,
+    scope:location.pathname.replace('index.html',''),
+    display:'standalone',
+    orientation:'portrait',
+    background_color:'#1F4E79',
+    theme_color:'#1F4E79',
     icons:[
-      {src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231F4E79"/><text y=".9em" font-size="70" x="12">⛽</text></svg>',sizes:'192x192',type:'image/svg+xml'},
-      {src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231F4E79"/><text y=".9em" font-size="70" x="12">⛽</text></svg>',sizes:'512x512',type:'image/svg+xml'}
+      {src:iconSvg,sizes:'192x192',type:'image/svg+xml',purpose:'any maskable'},
+      {src:iconSvg,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}
     ]
   };
   var blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
@@ -2133,23 +2139,53 @@ setInterval(updateHero,30000);
   document.getElementById('pwaManifest').href=url;
 })();
 
+// Register inline Service Worker for installability
+if('serviceWorker' in navigator){
+  var swCode=[
+    'var CACHE="sajani-fuel-v1";',
+    'self.addEventListener("install",function(e){',
+    '  e.waitUntil(caches.open(CACHE).then(function(c){',
+    '    return c.addAll([self.registration.scope]);',
+    '  }));',
+    '  self.skipWaiting();',
+    '});',
+    'self.addEventListener("activate",function(e){',
+    '  e.waitUntil(clients.claim());',
+    '});',
+    'self.addEventListener("fetch",function(e){',
+    '  e.respondWith(',
+    '    fetch(e.request).catch(function(){',
+    '      return caches.match(e.request);',
+    '    })',
+    '  );',
+    '});'
+  ].join('\n');
+  var swBlob=new Blob([swCode],{type:'application/javascript'});
+  var swUrl=URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl,{scope:'./'}).catch(function(){});
+}
+
 var deferredInstallPrompt=null;
 window.addEventListener('beforeinstallprompt',function(e){
-  e.preventDefault();deferredInstallPrompt=e;
+  e.preventDefault();
+  deferredInstallPrompt=e;
   var btn=document.getElementById('btnAndroidInstall');
   if(btn)btn.style.display='inline-flex';
 });
 function doAndroidInstall(){
-  if(!deferredInstallPrompt){alert('To install: use your browser menu → "Add to Home Screen" or "Install App"');return;}
-  deferredInstallPrompt.prompt();
-  deferredInstallPrompt.userChoice.then(function(){deferredInstallPrompt=null;});
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(function(){deferredInstallPrompt=null;});
+  } else {
+    alert('To install:\n\nAndroid Chrome: Tap ⋮ menu → "Add to Home Screen"\niPhone Safari: Tap Share → "Add to Home Screen"');
+  }
 }
 function showIosModal(){document.getElementById('iosModal').classList.add('show');}
 window.addEventListener('appinstalled',function(){
-  notify('App installed successfully! ✓');
+  notify('App installed successfully ✓');
   var b=document.getElementById('installBanner');if(b)b.style.display='none';
 });
-// Hide banner if already in standalone mode
+// Hide banner if already running as installed app
 if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone){
   setTimeout(function(){var b=document.getElementById('installBanner');if(b)b.style.display='none';},500);
 }
