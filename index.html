@@ -26,11 +26,36 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#f0f4f8;color:var(--text)
 /* ── PORTAL NAV ───────────────────────────────────────────────── */
 .portal-nav{
   background:var(--navy);
-  padding:0 20px;
-  display:flex;align-items:center;gap:0;
+  padding:0;
+  display:flex;flex-direction:column;
   position:sticky;top:0;z-index:100;
   box-shadow:0 2px 12px rgba(0,0,0,.25);
 }
+.nav-row1{
+  display:flex;align-items:center;
+  padding:0 16px;
+  min-height:44px;
+  gap:8px;
+}
+.nav-row2{
+  display:flex;align-items:center;
+  padding:0 16px 0;
+  border-top:1px solid rgba(255,255,255,.08);
+  overflow:hidden;
+}
+.nav-actions{
+  display:flex;align-items:center;gap:6px;
+  margin-left:auto;flex-shrink:0;flex-wrap:nowrap;
+}
+.nav-logout-btn{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:11px;font-weight:600;
+  padding:4px 10px;border-radius:20px;
+  background:rgba(239,68,68,.15);color:#fca5a5;
+  border:1px solid rgba(239,68,68,.35);
+  cursor:pointer;white-space:nowrap;transition:all .15s;
+}
+.nav-logout-btn:hover{background:rgba(239,68,68,.3);}
 .portal-brand{
   font-size:13px;font-weight:600;color:#fff;
   letter-spacing:.06em;text-transform:uppercase;
@@ -200,15 +225,20 @@ tr:hover{background:#f7f9fc;}
 /* ── MOBILE RESPONSIVE ────────────────────────────────────────── */
 @media(max-width:600px){
   body{overflow-x:hidden;width:100vw;}
-  .portal-nav{flex-wrap:wrap;padding:0 10px;}
+  /* Nav rows */
+  .nav-row1{padding:0 10px;min-height:40px;}
   .portal-brand{display:none;}
-  #userBadge{font-size:10px;padding:3px 8px;margin-left:4px;}
-  .ledger-tabs{order:2;width:100%;overflow-x:auto;flex-wrap:nowrap;padding:4px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-  .ledger-tabs::-webkit-scrollbar{display:none;}
-  .ledger-tab{font-size:11px;padding:6px 10px;white-space:nowrap;}
-  .portal-nav>div:last-child{order:1;margin-left:auto;gap:4px;padding:6px 0;}
-  .btn-new-ledger{font-size:10px;padding:4px 8px;margin-left:0;}
-  .sync-badge{font-size:9px;padding:3px 7px;}
+  .nav-actions{gap:4px;}
+  .btn-new-ledger{font-size:10px;padding:3px 8px;margin-left:0;}
+  .sync-badge{font-size:9px;padding:3px 6px;}
+  .nav-logout-btn{font-size:10px!important;padding:3px 8px!important;}
+  #userBadge{font-size:10px;padding:3px 7px;}
+  /* Tab row full width scrollable */
+  .nav-row2{padding:0 6px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .nav-row2::-webkit-scrollbar{display:none;}
+  .ledger-tabs{flex-wrap:nowrap;gap:1px;}
+  .ledger-tab{font-size:11px;padding:7px 10px;white-space:nowrap;}
+  /* Panels */
   .ledger-panel,.sec-panel{padding:12px 10px!important;width:100%;max-width:100%;}
   .top-bar{flex-direction:column;align-items:flex-start;gap:8px;}
   .top-bar h1{font-size:12px;}
@@ -219,15 +249,15 @@ tr:hover{background:#f7f9fc;}
   .grand-card{padding:10px 12px;}
   .grand-card .val{font-size:12px;}
   .grand-card .lbl{font-size:9px;}
-  .page-bar{padding:8px 10px;gap:6px;}
+  .page-bar{padding:8px 10px;gap:6px;flex-wrap:wrap;}
   .page-tab{font-size:10px;padding:4px 10px;}
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   table{font-size:11px;min-width:480px;}
   td,th{padding:6px 7px;font-size:10px;}
-  .home-hero{padding:20px 16px 16px;border-radius:12px;}
-  .home-hero h1{font-size:16px;}
-  .home-hero-stats{gap:10px;}
-  .home-hero-stat{padding:8px 12px;min-width:80px;}
+  .home-hero{padding:18px 14px 14px;border-radius:12px;}
+  .home-hero h1{font-size:15px;}
+  .home-hero-stats{gap:8px;flex-wrap:wrap;}
+  .home-hero-stat{padding:8px 10px;min-width:80px;}
   .home-hero-stat .val{font-size:12px;}
   .home-grid{grid-template-columns:1fr 1fr!important;gap:10px;}
   .home-card{padding:14px 12px;min-height:100px;}
@@ -235,14 +265,16 @@ tr:hover{background:#f7f9fc;}
   .home-card-title{font-size:11px;}
   .home-card-sub{font-size:9px;}
   .home-card-badge{font-size:9px;padding:2px 8px;margin-top:6px;}
-  .install-banner{padding:10px 14px;}
+  .install-banner{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:8px;}
+  .install-btns{flex-wrap:wrap;gap:6px;}
+  .btn-install{font-size:11px;padding:7px 12px;}
   .add-panel{padding:12px 14px;}
   .form-row{flex-direction:column;gap:8px;}
   .form-group{min-width:100%;}
   .modal{padding:20px 16px;max-width:96vw;}
   .co-header{padding:10px 14px 8px;}
   .co-name{font-size:12px;}
-  .co-stats{padding:8px 14px;gap:10px;}
+  .co-stats{padding:8px 14px;gap:10px;flex-wrap:wrap;}
   .co-stat{font-size:10px;}
   #sec-home{padding:14px 10px!important;}
 }
@@ -452,17 +484,23 @@ tr:hover{background:#f7f9fc;}
 </div>
 
 <nav class="portal-nav">
-  <div class="portal-brand">M/S SAJANI FUEL<span>Ledger Portal</span></div>
-  <span id="userBadge"></span>
-  <div class="ledger-tabs">
-    <button class="ledger-tab active" id="navtabHOME" onclick="switchSection('home')">🏠 Home</button>
-    <div id="customNavTabs"></div>
+  <!-- Row 1: Brand + Action buttons -->
+  <div class="nav-row1">
+    <div class="portal-brand">M/S SAJANI FUEL<span>Ledger Portal</span></div>
+    <div class="nav-actions">
+      <span id="userBadge"></span>
+      <button class="btn-new-ledger" onclick="openNewLedgerModal()">＋ Ledger</button>
+      <button class="btn-new-ledger" onclick="openNewSectionModal()" style="border-color:rgba(251,191,36,.5);color:#fbbf24;">＋ Section</button>
+      <button class="sync-badge synced" id="syncBadge" onclick="cloudSync()" title="Sync">☁</button>
+      <button onclick="doLogout()" class="nav-logout-btn">🔒 Logout</button>
+    </div>
   </div>
-  <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-    <button class="btn-new-ledger" onclick="openNewLedgerModal()">＋ Ledger</button>
-    <button class="btn-new-ledger" onclick="openNewSectionModal()" style="border-color:rgba(251,191,36,.5);color:#fbbf24;">＋ Section</button>
-    <button class="sync-badge synced" id="syncBadge" onclick="cloudSync()" title="Click to sync with cloud">☁ Synced</button>
-    <button onclick="doLogout()" title="Logout" style="font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.35);cursor:pointer;white-space:nowrap;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.3)'" onmouseout="this.style.background='rgba(239,68,68,.15)'">🔒 Logout</button>
+  <!-- Row 2: Tab navigation -->
+  <div class="nav-row2">
+    <div class="ledger-tabs">
+      <button class="ledger-tab active" id="navtabHOME" onclick="switchSection('home')">🏠 Home</button>
+      <div id="customNavTabs"></div>
+    </div>
   </div>
 </nav>
 
@@ -532,7 +570,7 @@ tr:hover{background:#f7f9fc;}
       <span>Works on Android & iPhone — no Play Store or App Store needed!</span>
     </div>
     <div class="install-btns">
-      <button class="btn-install btn-install-android" id="btnAndroidInstall" onclick="doAndroidInstall()" style="display:none;">📱 Install on Android</button>
+      <button class="btn-install btn-install-android" id="btnAndroidInstall" onclick="doAndroidInstall()">📱 Add to Home Screen</button>
       <button class="btn-install btn-install-ios" onclick="showIosModal()">🍎 iPhone / iPad</button>
     </div>
     <button class="btn-install-dismiss" onclick="document.getElementById('installBanner').style.display='none'" title="Dismiss">✕</button>
@@ -1578,11 +1616,52 @@ function setSyncBadge(state){
   else{b.className='sync-badge offline';b.textContent='⚠ Unsaved';}
 }
 
-// Build the payload — all ledgers in one row
+// Build the payload — ALL data types included
 function buildPayload(){
   var obj={savedAt:new Date().toISOString()};
+  // Ledgers
   L.forEach(function(l,i){if(l)obj['ledger'+i]=l.master;});
+  // All other sections
+  var extras=[
+    'sajani_dayreport_v1','sajani_tanker_v1',
+    'sajani_salary_v1','sajani_attendance_v1','sajani_expense_v1',
+    'sajani_sl_registry_v1','sajani_custom_sections_v1',
+    'sajani_portal_custom_ledgers_v1'
+  ];
+  extras.forEach(function(k){
+    try{var v=localStorage.getItem(k);if(v)obj[k]=JSON.parse(v);}catch(e){}
+  });
   return obj;
+}
+
+// Apply loaded cloud data to all sections
+function applyCloudData(d){
+  // Ledgers
+  L.forEach(function(l,i){
+    if(l&&d['ledger'+i]){
+      l.master=d['ledger'+i];
+      try{localStorage.setItem(KEYS[i],JSON.stringify(l.master));}catch(e){}
+    }
+  });
+  // Other sections — write to localStorage then re-render
+  var extras=[
+    'sajani_dayreport_v1','sajani_tanker_v1',
+    'sajani_salary_v1','sajani_attendance_v1','sajani_expense_v1',
+    'sajani_sl_registry_v1','sajani_custom_sections_v1',
+    'sajani_portal_custom_ledgers_v1'
+  ];
+  extras.forEach(function(k){
+    if(d[k]!==undefined){
+      try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}
+    }
+  });
+  // Re-render everything
+  L.forEach(function(l){if(l){l.renderPageTabs();l.render();}});
+  if(typeof drRender==='function'){drData=secLoad('sajani_dayreport_v1',[]);drRender();}
+  if(typeof trRender==='function'){trData=secLoad('sajani_tanker_v1',[]);trRender();}
+  if(typeof salRender==='function'){salData=secLoad('sajani_salary_v1',{records:[]});salRender();}
+  if(typeof attRender==='function'){attData=secLoad('sajani_attendance_v1',{});attRender();}
+  if(typeof expRender==='function'){expData=secLoad('sajani_expense_v1',[]);expRender();}
 }
 
 // UPSERT to Supabase
@@ -1600,10 +1679,8 @@ async function cloudSync(){
     if(res.ok||res.status===201||res.status===200){
       setSyncBadge('synced');
     } else {
-      var txt=await res.text();
-      console.error('Supabase sync error:',res.status,txt);
       setSyncBadge('offline');
-      notify('Sync failed ('+res.status+') — data saved locally');
+      notify('Sync failed — saved locally');
     }
   }catch(e){
     setSyncBadge('offline');
@@ -1623,30 +1700,17 @@ async function cloudLoad(){
     if(!res.ok){setSyncBadge('offline');return false;}
     var rows=await res.json();
     if(!rows||rows.length===0){
-      // First time — push local data to cloud
-      notify('First time setup — uploading your data to cloud...');
+      notify('First time — uploading your data to cloud...');
       await cloudSync();
       return true;
     }
     var d=rows[0].data;
-    var savedAt=rows[0].updated_at;
-    var changed=false;
-    L.forEach(function(l,i){
-      if(l&&d['ledger'+i]){
-        l.master=d['ledger'+i];
-        try{localStorage.setItem(KEYS[i],JSON.stringify(l.master));}catch(e){}
-        changed=true;
-      }
-    });
-    if(changed){
-      L.forEach(function(l){if(l){l.renderPageTabs();l.render();}});
-    }
+    _lastUpdatedAt=rows[0].updated_at;
+    applyCloudData(d);
     setSyncBadge('synced');
-    notify('Loaded from cloud ✓ — '+new Date(savedAt).toLocaleString('en-IN'));
     return true;
   }catch(e){
     setSyncBadge('offline');
-    notify('Could not reach cloud — using local data');
     return false;
   }
 }
@@ -1655,13 +1719,19 @@ async function cloudLoad(){
 var _origSave=Ledger.prototype.save;
 Ledger.prototype.save=function(){
   _origSave.call(this);
-  // Debounce: sync 1s after last change
   clearTimeout(Ledger._syncTimer);
-  Ledger._syncTimer=setTimeout(cloudSync,1000);
+  Ledger._syncTimer=setTimeout(cloudSync,800);
 };
 
-// ── REAL-TIME LISTENER ─────────────────────────────────────────
-// Poll every 15 seconds for changes made on other devices
+// Also override secSave to trigger sync
+var _origSecSave=window.secSave;
+function secSave(key,data){
+  try{localStorage.setItem(key,JSON.stringify(data));}catch(e){}
+  clearTimeout(Ledger._syncTimer);
+  Ledger._syncTimer=setTimeout(cloudSync,800);
+}
+
+// ── REAL-TIME POLL every 5 seconds ─────────────────────────────
 var _lastUpdatedAt=null;
 async function pollForChanges(){
   try{
@@ -1673,7 +1743,6 @@ async function pollForChanges(){
     if(!rows||rows.length===0)return;
     var serverTime=rows[0].updated_at;
     if(_lastUpdatedAt&&serverTime!==_lastUpdatedAt){
-      // Someone else made a change — reload
       _lastUpdatedAt=serverTime;
       await cloudLoad();
       notify('🔄 Updated from another device');
@@ -1682,7 +1751,7 @@ async function pollForChanges(){
     }
   }catch(e){}
 }
-setInterval(pollForChanges,15000);
+setInterval(pollForChanges,5000);
 
 // ══════════════════════════════════════════════════════════════════
 // INIT
@@ -2234,7 +2303,7 @@ if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.sta
 }
 
 function secLoad(key,def){try{var s=localStorage.getItem(key);if(s)return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(def));}
-function secSave(key,data){try{localStorage.setItem(key,JSON.stringify(data));}catch(e){} clearTimeout(Ledger._syncTimer);Ledger._syncTimer=setTimeout(cloudSync,1500);}
+// secSave is defined above near cloudSync to include real-time push
 
 // ══════════════════════════════════════════════════════════════════
 // DAY REPORT
