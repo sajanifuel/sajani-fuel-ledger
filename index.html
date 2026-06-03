@@ -3583,12 +3583,21 @@ function applyViewOnlyAccess(allowedLedgerIdx) {
 
     // ── Keep sec-home accessible; hide other named section panels ──
 
-    // Hide all ledger panels except allowed; show allowed
+    // Hide ALL ledger panels on login — user must click the card from Home to open
     var panels = document.querySelectorAll('.ledger-panel');
-    panels.forEach(function(p, i) {
-      if (i !== allowedLedgerIdx) { p.style.display = 'none'; p.classList.remove('active'); }
-      else { p.style.display = 'block'; p.classList.add('active'); }
+    panels.forEach(function(p) {
+      p.style.display = 'none';
+      p.classList.remove('active');
     });
+
+    // Make sure Home section is visible on login
+    var secHome = document.getElementById('sec-home');
+    if (secHome) { secHome.style.display = 'block'; secHome.classList.add('active'); }
+
+    // Activate Home tab
+    document.querySelectorAll('.ledger-tab').forEach(function(t){ t.classList.remove('active'); });
+    var homeTab2 = document.getElementById('navtabHOME');
+    if (homeTab2) homeTab2.classList.add('active');
 
     // Hide all other named sections
     ['sec-dayreport','sec-tanker','sec-sitereport','sec-salary',
