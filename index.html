@@ -2501,40 +2501,51 @@ var trEditIdx=null;
 function trRender(){
   var tb=document.getElementById('trTbody');if(!tb)return;
   tb.innerHTML='';
-  var balance=0;
   if(trData.length===0){
-    tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);">No tanker trips yet.</td></tr>';
+    tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--muted);">No tanker entries yet.</td></tr>';
     return;
   }
+  var lastRemaining=0;
   trData.forEach(function(r,i){
-    balance+=r.loaded-(r.delivered||0);
+    var openingStock = (r.openingStock!==undefined && r.openingStock!==null && r.openingStock!=='') ? parseFloat(r.openingStock)||0 : lastRemaining;
+    var received = parseFloat(r.received)||0;
+    var totalStock = openingStock + received;
+    var sale = parseFloat(r.sale)||0;
+    var remaining = totalStock - sale;
+    lastRemaining = remaining;
+    var meterOpen = parseFloat(r.meterOpen)||0;
+    var meterClose = parseFloat(r.meterClose)||0;
+    var meterSale = (meterOpen && meterClose) ? f2(meterClose - meterOpen)+'L' : '—';
     var tr=document.createElement('tr');
     tr.innerHTML='<td>'+r.date+'</td>'+
-      '<td>'+r.site+'</td>'+
+      '<td style="font-weight:600;color:var(--navy)">'+f2(openingStock)+'</td>'+
+      '<td style="font-weight:600;color:var(--blue)">'+f2(received)+'</td>'+
+      '<td style="font-weight:700;color:#0891b2">'+f2(totalStock)+'</td>'+
+      '<td style="font-weight:600;color:var(--red)">'+f2(sale)+'</td>'+
+      '<td style="font-weight:700;color:#166534">'+f2(remaining)+'</td>'+
       '<td>'+(r.meterOpen||'—')+'</td>'+
       '<td>'+(r.meterClose||'—')+'</td>'+
-      '<td style="font-weight:600;color:var(--blue)">'+f2(r.loaded)+'L</td>'+
-      '<td style="font-weight:600;color:var(--red)">'+f2(r.delivered||0)+'L</td>'+
-      '<td style="font-weight:700;color:#166534">'+f2(balance)+'L</td>'+
+      '<td style="font-weight:700;color:#7c3aed">'+meterSale+'</td>'+
       '<td>'+(r.notes||'—')+'</td>'+
       '<td class="act"><button class="btn btn-sm btn-edit" onclick="trEdit('+i+')">✎</button> '+
       '<button class="btn btn-sm btn-del" onclick="trDelete('+i+')">✕</button></td>';
     tb.appendChild(tr);
   });
-  document.getElementById('trBalance').textContent=f2(balance)+'L';
+  // Show last remaining as balance
+  document.getElementById('trBalance').textContent=f2(lastRemaining)+'L';
 }
 
 function trEdit(idx){
   trEditIdx=idx;var r=trData[idx];
   document.getElementById('trDate').value=r.date;
-  document.getElementById('trSite').value=r.site;
+  document.getElementById('trOpeningStock').value=r.openingStock||'';
+  document.getElementById('trReceived').value=r.received||0;
+  document.getElementById('trSale').value=r.sale||0;
   document.getElementById('trMeterOpen').value=r.meterOpen||'';
   document.getElementById('trMeterClose').value=r.meterClose||'';
-  document.getElementById('trLoaded').value=r.loaded||0;
-  document.getElementById('trDelivered').value=r.delivered||0;
   document.getElementById('trNotes').value=r.notes||'';
   document.getElementById('trModal').classList.add('show');
-  document.getElementById('trModalTitle').textContent='Edit Tanker Trip';
+  document.getElementById('trModalTitle').textContent='Edit Entry';
 }
 function trDelete(idx){
   if(!confirm('Delete this tanker entry?'))return;
@@ -2543,26 +2554,28 @@ function trDelete(idx){
 function trOpenNew(){
   trEditIdx=null;
   document.getElementById('trDate').value=todayStr();
-  document.getElementById('trSite').value='';
-  document.getElementById('trMeterOpen').value='';document.getElementById('trMeterClose').value='';
-  document.getElementById('trLoaded').value='2500';document.getElementById('trDelivered').value='';
+  document.getElementById('trOpeningStock').value='';
+  document.getElementById('trReceived').value='';
+  document.getElementById('trSale').value='';
+  document.getElementById('trMeterOpen').value='';
+  document.getElementById('trMeterClose').value='';
   document.getElementById('trNotes').value='';
   document.getElementById('trModal').classList.add('show');
-  document.getElementById('trModalTitle').textContent='New Tanker Trip';
+  document.getElementById('trModalTitle').textContent='New Tanker Entry';
 }
 function trCloseModal(){document.getElementById('trModal').classList.remove('show');}
 function trSave(){
   var r={
     id:trEditIdx!==null?trData[trEditIdx].id:Date.now(),
     date:document.getElementById('trDate').value,
-    site:document.getElementById('trSite').value.trim(),
+    openingStock:document.getElementById('trOpeningStock').value,
+    received:parseFloat(document.getElementById('trReceived').value)||0,
+    sale:parseFloat(document.getElementById('trSale').value)||0,
     meterOpen:document.getElementById('trMeterOpen').value,
     meterClose:document.getElementById('trMeterClose').value,
-    loaded:parseFloat(document.getElementById('trLoaded').value)||0,
-    delivered:parseFloat(document.getElementById('trDelivered').value)||0,
     notes:document.getElementById('trNotes').value
   };
-  if(!r.date||!r.site){alert('Enter date and site.');return;}
+  if(!r.date){alert('Enter date.');return;}
   if(trEditIdx!==null)trData[trEditIdx]=r;
   else trData.push(r);
   secSave(TR_KEY,trData);trCloseModal();trRender();
@@ -3193,12 +3206,12 @@ setTimeout(function(){
     <button class="btn btn-green" onclick="trOpenNew()">+ New Trip</button>
   </div>
   <div class="grand-wrap">
-    <div class="grand-card blue"><div class="lbl">Tanker Balance</div><div class="val" id="trBalance" style="color:var(--blue)">—</div></div>
+    <div class="grand-card blue"><div class="lbl">Remaining Stock</div><div class="val" id="trBalance" style="color:var(--blue)">—</div></div>
   </div>
   <div class="card">
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Date</th><th>Delivery Site</th><th>Meter Open</th><th>Meter Close</th><th>Loaded (L)</th><th>Delivered (L)</th><th>Balance (L)</th><th>Notes</th><th class="act">Actions</th></tr></thead>
+        <thead><tr><th>Date</th><th>Opening Stock (L)</th><th>Received Stock (L)</th><th>Total Stock (L)</th><th>Sale (L)</th><th>Remaining (L)</th><th>Meter Open</th><th>Meter Close</th><th>Meter Sale (L)</th><th>Notes</th><th class="act">Actions</th></tr></thead>
         <tbody id="trTbody"></tbody>
       </table>
     </div>
@@ -3211,11 +3224,11 @@ setTimeout(function(){
     <h2 id="trModalTitle">New Tanker Trip</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
       <div class="modal-field"><label>Date</label><input type="date" id="trDate"/></div>
-      <div class="modal-field"><label>Delivery Site</label><input type="text" id="trSite" placeholder="e.g. DSW, Majestic Mines"/></div>
+      <div class="modal-field"><label>Opening Stock (L)</label><input type="number" id="trOpeningStock" placeholder="Stock at start of day"/></div>
+      <div class="modal-field"><label>Received Stock (L) <span style="font-size:10px;color:var(--muted);">Diesel received from fuel station</span></label><input type="number" id="trReceived" placeholder="0"/></div>
+      <div class="modal-field"><label>Sale (L) <span style="font-size:10px;color:var(--muted);">Total sale today</span></label><input type="number" id="trSale" placeholder="0"/></div>
       <div class="modal-field"><label>Meter Reading Open</label><input type="number" id="trMeterOpen" placeholder="Opening meter"/></div>
       <div class="modal-field"><label>Meter Reading Close</label><input type="number" id="trMeterClose" placeholder="Closing meter"/></div>
-      <div class="modal-field"><label>Diesel Loaded (L)</label><input type="number" id="trLoaded" value="2500"/></div>
-      <div class="modal-field"><label>Diesel Delivered (L)</label><input type="number" id="trDelivered" placeholder="0"/></div>
     </div>
     <div class="modal-field" style="margin-top:12px;"><label>Notes</label><input type="text" id="trNotes" placeholder="Any notes..."/></div>
     <div class="modal-btns">
