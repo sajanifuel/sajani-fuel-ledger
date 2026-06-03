@@ -3597,15 +3597,52 @@ function applyViewOnlyAccess(allowedLedgerIdx) {
       if (el) el.style.display = 'none';
     });
 
-    // ── In the allowed ledger panel: KEEP all add/edit/delete buttons visible ──
-    // (Full edit access to their own ledger — changes go to Supabase via normal save flow)
-    // Only hide the "Clear Page", "New Ledger" buttons to prevent data loss
+    // ── In the allowed ledger panel: HIDE all add/edit/delete/save buttons (view-only) ──
     var allowedPanel = document.querySelectorAll('.ledger-panel')[allowedLedgerIdx];
     if (allowedPanel) {
+      // Hide Add Entry, Clear Page, Add Payment, Add Loan/Entry buttons
+      allowedPanel.querySelectorAll('.btn-green, .btn-blue, .btn-add-page, .btn-del-page').forEach(function(btn){
+        btn.style.display='none';
+      });
+      // Hide btn-ghost buttons (Clear Page, Add Entry, Close Panel action buttons)
       allowedPanel.querySelectorAll('.btn-ghost').forEach(function(btn){
         var txt = (btn.textContent || '').trim();
-        if (txt.indexOf('Clear Page') !== -1) btn.style.display='none';
+        if (txt.indexOf('Clear Page') !== -1 ||
+            txt.indexOf('Add Entry') !== -1 ||
+            txt.indexOf('Add Loan') !== -1) {
+          btn.style.display='none';
+        }
       });
+      // Hide inline edit/delete/save buttons rendered in table rows
+      allowedPanel.querySelectorAll('.btn-edit, .btn-del, .btn-save').forEach(function(btn){
+        btn.style.display='none';
+      });
+      // Hide the action column header and cells (no-print act columns)
+      allowedPanel.querySelectorAll('.act').forEach(function(el){
+        el.style.display='none';
+      });
+      // Also hide the open-panel / add-payment slide-in panel entirely
+      allowedPanel.querySelectorAll('.add-panel, .entry-panel, .slide-panel').forEach(function(el){
+        el.style.display='none';
+      });
+    }
+
+    // Re-hide after any re-render by observing DOM changes
+    if (!window._viewOnlyObserver) {
+      window._viewOnlyObserver = new MutationObserver(function() {
+        var panel = document.querySelectorAll('.ledger-panel')[allowedLedgerIdx];
+        if (!panel) return;
+        panel.querySelectorAll('.btn-green, .btn-blue, .btn-add-page, .btn-del-page, .btn-edit, .btn-del, .btn-save').forEach(function(b){ b.style.display='none'; });
+        panel.querySelectorAll('.act').forEach(function(el){ el.style.display='none'; });
+        panel.querySelectorAll('.btn-ghost').forEach(function(btn){
+          var txt = (btn.textContent || '').trim();
+          if (txt.indexOf('Clear Page') !== -1 || txt.indexOf('Add Entry') !== -1 || txt.indexOf('Add Loan') !== -1) {
+            btn.style.display='none';
+          }
+        });
+      });
+      var target = document.querySelector('.ledger-panels') || document.body;
+      window._viewOnlyObserver.observe(target, { childList: true, subtree: true });
     }
 
     // ── On the home screen, hide cards for sections the user can't access ──
