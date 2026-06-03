@@ -453,6 +453,9 @@ tr:hover{background:#f7f9fc;}
       <button class="lock-user-btn" onclick="selectUser('CHIEF')" id="ubtn-CHIEF">🎯 CHIEF</button>
       <button class="lock-user-btn" onclick="selectUser('SS1')" id="ubtn-SS1">🔷 SS 1</button>
       <button class="lock-user-btn" onclick="selectUser('SS2')" id="ubtn-SS2">🔶 SS 2</button>
+      <button class="lock-user-btn" onclick="selectUser('DSW')" id="ubtn-DSW">🏗️ DSW</button>
+      <button class="lock-user-btn" onclick="selectUser('MINES')" id="ubtn-MINES">⛏️ Mines</button>
+      <button class="lock-user-btn" onclick="selectUser('ANGA')" id="ubtn-ANGA">🔩 Angagaria</button>
     </div>
 
     <div class="lock-label">Enter Passcode</div>
@@ -2043,8 +2046,14 @@ function switchLedger(i){
   if(panel)panel.classList.add('active');
   var tab=document.getElementById('navtab'+i);
   if(tab)tab.classList.add('active');
+  // Re-render page tabs and data so all pages are visible
+  if(L&&L[i]){L[i].renderPageTabs();L[i].render();}
   if(typeof updateHero==='function')updateHero();
 }
+
+// Save pristine originals so logout can fully restore them
+window._pristineSwitchSection = switchSection;
+window._pristineSwitchLedger = switchLedger;
 
 // ══════════════════════════════════════════════════════════════════
 // CUSTOM SECTIONS
@@ -3375,10 +3384,13 @@ setTimeout(function(){
 // PASSCODE LOCK SYSTEM
 // ══════════════════════════════════════════════════════════════════
 var USERS = {
-  'BOSS':  { code: '7749', label: '👑 BOSS',  fullAccess: true  },
-  'CHIEF': { code: '9321', label: '🎯 CHIEF', fullAccess: true  },
-  'SS1':   { code: '4488', label: '🔷 SS 1',  fullAccess: false },
-  'SS2':   { code: '6163', label: '🔶 SS 2',  fullAccess: false }
+  'BOSS':  { code: '7749', label: '👑 BOSS',       fullAccess: true,  restrictedLedger: false, allowedLedger: null },
+  'CHIEF': { code: '9321', label: '🎯 CHIEF',      fullAccess: true,  restrictedLedger: false, allowedLedger: null },
+  'SS1':   { code: '4488', label: '🔷 SS 1',       fullAccess: false, restrictedLedger: false, allowedLedger: null },
+  'SS2':   { code: '6163', label: '🔶 SS 2',       fullAccess: false, restrictedLedger: false, allowedLedger: null },
+  'DSW':   { code: '3571', label: '🏗️ DSW',        fullAccess: false, restrictedLedger: true,  allowedLedger: 0    },
+  'MINES': { code: '8824', label: '⛏️ Mines',      fullAccess: false, restrictedLedger: true,  allowedLedger: 2    },
+  'ANGA':  { code: '6209', label: '🔩 Angagaria',  fullAccess: false, restrictedLedger: true,  allowedLedger: 1    }
 };
 
 var lockSelectedUser = null;
@@ -3432,8 +3444,12 @@ function checkPasscode() {
     lockLocked = false;
     window.currentUser = lockSelectedUser;
     window.currentUserData = u;
-    // Restrict salary for SS users
-    if (!u.fullAccess) {
+    // Apply restrictions based on user role
+    if (u.restrictedLedger) {
+      // Client users — own ledger only, full edit access within it
+      applyViewOnlyAccess(u.allowedLedger);
+    } else if (!u.fullAccess) {
+      // SS users — no salary
       restrictSalaryAccess();
     }
     // Show user badge in nav
@@ -3461,6 +3477,9 @@ function showLockError(msg) {
 
 function doLogout() {
   if (!confirm('Logout from ' + (window.currentUserData ? window.currentUserData.label : 'portal') + '?')) return;
+  // Restore pristine nav functions (undoes applyViewOnlyAccess / restrictSalaryAccess overrides)
+  if (window._pristineSwitchSection) window.switchSection = window._pristineSwitchSection;
+  if (window._pristineSwitchLedger) window.switchLedger = window._pristineSwitchLedger;
   // Reset state
   lockLocked = true;
   lockSelectedUser = null;
@@ -3478,13 +3497,22 @@ function doLogout() {
   // Reset dots
   updateLockDots();
   document.getElementById('lockError').textContent = '';
+  // Restore all hidden nav tabs and buttons
+  document.querySelectorAll('.ledger-tab').forEach(function(t){ t.style.display=''; });
+  var homeTab = document.getElementById('navtabHOME');
+  if (homeTab) homeTab.style.display = '';
+  document.querySelectorAll('.btn-new-ledger').forEach(function(b){ b.style.display=''; });
+  var syncBadge = document.getElementById('syncBadge');
+  if (syncBadge) syncBadge.style.display='';
+  // Restore all hidden home cards
+  document.querySelectorAll('.home-card').forEach(function(c){ c.style.display=''; });
   // Show lock screen
   var ls = document.getElementById('lockScreen');
   ls.style.transition = 'none';
   ls.style.opacity = '1';
   ls.style.display = 'flex';
-  // Go home
-  if (typeof switchSection === 'function') switchSection('home');
+  // Go home using pristine function
+  window._pristineSwitchSection('home');
 }
 
 function restrictSalaryAccess() {
@@ -3504,7 +3532,6 @@ function restrictSalaryAccess() {
     }
     _orig.apply(this, arguments);
   };
-  // Also block home card click if dynamically rendered
   setTimeout(function() {
     var cards2 = document.querySelectorAll('.home-card');
     cards2.forEach(function(card) {
@@ -3513,6 +3540,101 @@ function restrictSalaryAccess() {
       }
     });
   }, 500);
+}
+
+function applyViewOnlyAccess(allowedLedgerIdx) {
+  // Always use the pristine originals saved at startup
+  var _origSwitch = window._pristineSwitchSection || window.switchSection;
+  var _origSwitchLedger = window._pristineSwitchLedger || window.switchLedger;
+
+  window.switchSection = function(sec) {
+    // Allow home navigation
+    if (sec === 'home') { _origSwitch.call(this, sec); return; }
+    // Block all other named sections
+    notify('⛔ Access Restricted — You can only view your own ledger');
+    return;
+  };
+  window.switchLedger = function(i) {
+    if (i === allowedLedgerIdx) { _origSwitchLedger.call(this, i); return; }
+    notify('⛔ Access Restricted — You can only view your own ledger');
+    return;
+  };
+
+  function lockDown() {
+    // ── Show logout button, hide all other nav actions ──
+    document.querySelectorAll('.btn-new-ledger').forEach(function(b){ b.style.display='none'; });
+    var syncBadge = document.getElementById('syncBadge');
+    if (syncBadge) syncBadge.style.display='none';
+
+    // ── Keep logout visible ──
+    document.querySelectorAll('.nav-logout-btn').forEach(function(b){ b.style.display='inline-block'; });
+
+    // ── Keep Home tab visible, hide all other ledger tabs except theirs ──
+    var homeTab = document.getElementById('navtabHOME');
+    if (homeTab) homeTab.style.display = 'inline-block';
+
+    var allTabs = document.querySelectorAll('.ledger-tab');
+    allTabs.forEach(function(tab, i) {
+      // i=0 is Home — keep visible; i=1 onwards are ledgers (index = i-1)
+      if (i === 0) tab.style.display = 'inline-block';
+      else if (i !== allowedLedgerIdx + 1) tab.style.display = 'none';
+      else tab.style.display = 'inline-block';
+    });
+
+    // ── Keep sec-home accessible; hide other named section panels ──
+
+    // Hide all ledger panels except allowed; show allowed
+    var panels = document.querySelectorAll('.ledger-panel');
+    panels.forEach(function(p, i) {
+      if (i !== allowedLedgerIdx) { p.style.display = 'none'; p.classList.remove('active'); }
+      else { p.style.display = 'block'; p.classList.add('active'); }
+    });
+
+    // Hide all other named sections
+    ['sec-dayreport','sec-tanker','sec-sitereport','sec-salary',
+     'sec-attendance','sec-expense','sec-customsections'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    // ── In the allowed ledger panel: KEEP all add/edit/delete buttons visible ──
+    // (Full edit access to their own ledger — changes go to Supabase via normal save flow)
+    // Only hide the "Clear Page", "New Ledger" buttons to prevent data loss
+    var allowedPanel = document.querySelectorAll('.ledger-panel')[allowedLedgerIdx];
+    if (allowedPanel) {
+      allowedPanel.querySelectorAll('.btn-ghost').forEach(function(btn){
+        var txt = (btn.textContent || '').trim();
+        if (txt.indexOf('Clear Page') !== -1) btn.style.display='none';
+      });
+    }
+
+    // ── On the home screen, hide cards for sections the user can't access ──
+    var homeGrid = document.getElementById('homeGrid');
+    if (homeGrid) {
+      homeGrid.querySelectorAll('.home-card').forEach(function(card, i) {
+        // Keep only their own ledger card (index = allowedLedgerIdx)
+        if (card.classList.contains('c' + allowedLedgerIdx)) {
+          card.style.display = 'flex';
+        } else if (card.classList.contains('c0') || card.classList.contains('c1') ||
+                   card.classList.contains('c2') || card.classList.contains('c3') ||
+                   card.classList.contains('c4') || card.classList.contains('c5') ||
+                   card.classList.contains('c6') || card.classList.contains('c7')) {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Pre-render the allowed ledger
+    if (window.L && window.L[allowedLedgerIdx]) {
+      window.L[allowedLedgerIdx].renderPageTabs();
+      window.L[allowedLedgerIdx].render();
+    }
+  }
+
+  // Run after DOM is ready and after ledgers render
+  setTimeout(lockDown, 400);
+  setTimeout(lockDown, 1200);
+  setTimeout(lockDown, 2500);
 }
 </script>
 </body>
